@@ -14,8 +14,9 @@
 #include "VertexArray.h"
 #include "VertexBufferLayout.h"
 
-
 #include "Shader.h"
+#include "Texture.h"
+
 int main(void)
 {
     GLFWwindow* window;
@@ -43,11 +44,11 @@ int main(void)
 		}
 
 	{
-		float positions[8] = {
-			-0.5f, -0.5f,
-			 0.5f, -0.5f,
-			 0.5f, 0.5f,
-			 -0.5f, 0.5f
+		float positions[] = {
+			-0.5f, -0.5f, 0.0f, 0.0f,
+			 0.5f, -0.5f, 1.0f, 0.0f,
+			 0.5f, 0.5f, 1.0f, 1.0f,
+			 -0.5f, 0.5f, 0.0f, 1.0f
 		};
 
 		unsigned int indices[] = {
@@ -58,9 +59,10 @@ int main(void)
 
 
 		VertexArray va;
-		VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+		VertexBuffer vb(positions, 4 * 4 * sizeof(float));
 		
 		VertexBufferLayout layout;
+		layout.Push<float>(2);
 		layout.Push<float>(2);
 		va.AddBuffer(vb, layout);
 
@@ -71,6 +73,10 @@ int main(void)
 		shader.Bind();
 
 		shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
+
+		Texture texture("res/texture/Test.png");
+		texture.Bind();
+		shader.SetUniform1i("u_Texture", 0);
 
 		float r = 0.0f;
 		/* Loop until the user closes the window */
@@ -88,7 +94,7 @@ int main(void)
 
 			shader.Bind();
 			shader.SetUniform4f("u_Color", r, 0.5f, 0.8f, 1.0f);
-
+			texture.Bind();
 			render.Draw(va, ib, shader);
 
 			//GLClearError();
