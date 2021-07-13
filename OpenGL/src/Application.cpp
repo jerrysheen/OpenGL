@@ -23,6 +23,9 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
 
+#include "tests/TestClearColor.h"
+
+
 int main(void)
 {
     GLFWwindow* window;
@@ -104,57 +107,46 @@ int main(void)
 		glm::vec3 translationA = glm::vec3(200, 0, 0);
 		glm::vec3 translationB = glm::vec3(400, 200, 0);
 
+		test::Test* currentTest = nullptr;
+		test::TestMenu* testMenu = new test::TestMenu(currentTest);
+		currentTest = testMenu;
+
+		testMenu->RegisterTest<test::TestClearColor>("Clear Color");
+
+		test::TestClearColor testColor;
+
 		while (!glfwWindowShouldClose(window))
 		{
 			/* Render here */
+			GLCall(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
 			render.Clear();
 
-
 			ImGui_ImplGlfwGL3_NewFrame();
-
-			shader.Bind();
-			//shader.SetUniform4f("u_Color", r, 0.5f, 0.8f, 1.0f);
-			texture.Bind();
-
+			if (currentTest) 
 			{
-				glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);
-				glm::mat4 mvp = proj * view * model;
-				shader.SetUniformMat4f("u_MVP", mvp);
-				render.Draw(va, ib, shader);
+				currentTest->OnUpdate(0.0f);
+				currentTest->OnRender();
+				ImGui::Begin("Test");
+				if (currentTest != testMenu && ImGui::Button("<-"))
+				{
+					delete currentTest;
+					currentTest = testMenu;
+				}
+				currentTest->OnImGuiRender();
+				ImGui::End();
 			}
-
-			{
-				glm::mat4 model = glm::translate(glm::mat4(1.0f), translationB);
-				glm::mat4 mvp = proj * view * model;
-				shader.SetUniformMat4f("u_MVP", mvp);
-				render.Draw(va, ib, shader);
-			}
-
-
-			//GLClearError();
-			//glDrawArrays(GL_TRIANGLES, 0, 3);
-
-
-			//ASSERT(GLCheckError());
 			
-			{
-
-				ImGui::Text("Hello, world!");                           // Display some text (you can use a format string too)
-				ImGui::SliderFloat3("Translation A", &translationA.x, 0.0f, 960.0f);            // Edit 1 float using a slider from 0.0f to 1.0f    
-				ImGui::SliderFloat3("Translation B", &translationB.x, 0.0f, 960.0f);            // Edit 1 float using a slider from 0.0f to 1.0f    
-				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-			}
-
 			ImGui::Render();
 			ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 
-			r = r > 1.0f ? 0.0f : r + 0.03f;
 			/* Swap front and back buffers */
 			glfwSwapBuffers(window);
-
 			/* Poll for and process events */
 			glfwPollEvents();
 		}
+
+		delete currentTest;
+		if (currentTest != testMenu) delete testMenu;
 	}
 
 	ImGui_ImplGlfwGL3_Shutdown();
