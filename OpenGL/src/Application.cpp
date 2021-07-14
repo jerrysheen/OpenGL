@@ -24,6 +24,7 @@
 #include "imgui/imgui_impl_glfw_gl3.h"
 
 #include "tests/TestClearColor.h"
+#include "tests/TestTexture2D.h"
 
 
 int main(void)
@@ -53,50 +54,6 @@ int main(void)
 		}
 
 	{
-		float positions[] = {
-			-50.0f, -50.0f, 0.0f, 0.0f,
-			50.0f, -50.0f, 1.0f, 0.0f,
-			50.0f, 50.0f, 1.0f, 1.0f,
-			 -50.0f, 50.0f, 0.0f, 1.0f
-		};
-
-		unsigned int indices[] = {
-			0, 1, 2,
-			2, 3, 0
-		};
-
-
-
-		VertexArray va;
-		VertexBuffer vb(positions, 4 * 4 * sizeof(float));
-		
-		VertexBufferLayout layout;
-		layout.Push<float>(2);
-		layout.Push<float>(2);
-		va.AddBuffer(vb, layout);
-
-		IndexBuffer ib(indices, 6);
-
-		glm::mat4 proj = glm::ortho(0.0f, 960.0f, 0.0f, 540.0f, -1.0f, 1.0f);
-		// camera projection
-		glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-
-
-		Shader shader("res/shaders/Basic.shader");
-		shader.Bind();
-
-		shader.SetUniform4f("u_Color", 0.8f, 0.3f, 0.8f, 1.0f);
-		Texture texture("res/texture/Test.png");
-		texture.Bind();
-		shader.SetUniform1i("u_Texture", 0);
-
-		float r = 0.0f;
-		/* Loop until the user closes the window */
-
-
-		shader.Unbind();
-		vb.Unbind();
-		ib.Unbind();
 
 		Renderer render;
 
@@ -104,16 +61,13 @@ int main(void)
 		ImGui_ImplGlfwGL3_Init(window, true);
 		ImGui::StyleColorsDark();
 
-		glm::vec3 translationA = glm::vec3(200, 0, 0);
-		glm::vec3 translationB = glm::vec3(400, 200, 0);
-
 		test::Test* currentTest = nullptr;
 		test::TestMenu* testMenu = new test::TestMenu(currentTest);
 		currentTest = testMenu;
 
 		testMenu->RegisterTest<test::TestClearColor>("Clear Color");
+		testMenu->RegisterTest<test::TestTexture2D>("Texture color");
 
-		test::TestClearColor testColor;
 
 		while (!glfwWindowShouldClose(window))
 		{
@@ -135,7 +89,7 @@ int main(void)
 				currentTest->OnImGuiRender();
 				ImGui::End();
 			}
-			
+
 			ImGui::Render();
 			ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 
